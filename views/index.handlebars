@@ -1,7 +1,10 @@
 <h1>Nick's Neat App: Home</h1>
 
 <div>
-    We currently have {{userCount}} users.
+    We currently have {{userCount}} users. <br>
+    {{#if currentUser}}
+        Hello <b>{{currentUser.name}}</b>, welcome to Nick's Neat ToDo App
+    {{/if}}
 </div>
 
 {{#if errors}}
