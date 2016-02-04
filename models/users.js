@@ -1,10 +1,10 @@
-var mongoose = require('mongoose');
 
+var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/social-todo');
 
 var Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
-    
+
 var stringField = {
     type: String,
     minlength: 1,
@@ -14,7 +14,7 @@ var stringField = {
 var UserSchema = new Schema({
     email: {
         type: String,
-        minlength:  1,
+        minlength: 1,
         maxlength: 50,
         lowercase: true
     },

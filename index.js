@@ -2,8 +2,9 @@ var express = require('express');
 var exphbs  = require('express-handlebars');
 var app = express();
 var bodyParser = require('body-parser');
-var Users = require('./models/users.js')
-var session = require('express-session')
+var session = require('express-session');
+var Users = require('./models/users.js');
+
 
 //configure our app
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
@@ -17,6 +18,7 @@ app.use(session({ //   .use is express middleware, read about this
 }))
 
 app.use(function(req, res, next){
+  console.log('req.session =', req.session);
   if(req.session.userId){
     Users.findById(req.session.userId, function(err, user){
       if(!err){
@@ -60,6 +62,11 @@ app.post('/user/register', function (req, res) {
     })
     console.log('The user has email adddress ' + req.body.email);
 });
+
+app.get('/user/logout', function(req, res){
+  req.session.destroy();
+  res.redirect('/');
+})
 
 app.listen(process.env.PORT, function () {
   console.log('Example app listening on port ' + process.env.PORT);
