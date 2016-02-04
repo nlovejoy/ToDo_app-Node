@@ -4,7 +4,13 @@
     We currently have {{userCount}} users.
 </div>
 
-<div>
+{{#if errors}}
+<div style="color:red">
+    {{errors}}
+</div>
+{{/if}}
+
+{{!<div>
     <form class="login-form" action="/user/login">
         <label for="fl_name">Name</label>
         <input name="fl_name" type="text"><br>
@@ -14,7 +20,7 @@
         <input name="password" type="text"><br>
         <input type="submit">
     </form>
-</div>
+</div>}}
 <div><hr></div>
 <div>
     <form action="/user/register" method="post" class="signup-form" style="display: block;">
