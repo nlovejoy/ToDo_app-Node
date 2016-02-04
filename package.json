@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/nlovejoy/cpsc113-ToDo-Node#readme",
   "dependencies": {
-    "express": "^4.13.4"
+    "body-parser": "^1.14.2",
+    "express": "^4.13.4",
+    "express-handlebars": "^3.0.0"
   }
 }
