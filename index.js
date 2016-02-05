@@ -10,6 +10,7 @@ var Users = require('./models/users.js');
 var Tasks = require('./models/tasks.js');
 
 
+
 //configure our app
 var store = new MongoDBStore({ 
   uri: process.env.MONGO_URL,
@@ -41,19 +42,33 @@ app.use(function(req, res, next){
   }
 })
 
+function isLoggedIn(req, res, next){
+  console.log('res.locals.currentUser = ', res.locals.currentUser);
+  if(res.locals.currentUser){
+    next();
+  }else{
+    res.sendStatus(403);
+  }
+}
+
+function loadUserTasks(req, res, next) {
+  if(!res.locals.currentUser){
+    return next();
+  }
+  Tasks.find({}).or([
+      {owner: res.locals.currentUser},
+      {collaborators: res.locals.currentUser.email}])
+    .exec(function(err, tasks){
+      if(!err){
+        res.locals.tasks = tasks;
+      }
+      next();
+  })
+}
 
 
-app.get('/', function (req, res) {
-  Users.count(function (err, users) {
-    if (err) {
-      res.send('error getting users');
-    }else{
-      res.render('index', {
-        userCount: users.length,
-        currentUser: res.locals.currentUser
-      });
-    }
-  });
+app.get('/', loadUserTasks, function (req, res) {
+      res.render('index');
 });
 
 app.post('/user/register', function (req, res) {
@@ -104,6 +119,25 @@ app.get('/user/logout', function(req, res){
   req.session.destroy();
   res.redirect('/');
 })
+//  All the controllers and routes below this require
+//  the user to be logged in.
+app.use(isLoggedIn);
+
+app.post('/tasks/create', function(req, res){
+  var newTask = new Tasks();
+  newTask.owner = res.locals.currentUser._id;
+  newTask.title = req.body.title;
+  newTask.description = req.body.description;
+  newTask.collaborators = [req.body.collaborator1, req.body.collaborator2, req.body.collaborator3];
+  newTask.save(function(err, savedTask){
+    if(err || !savedTask){
+      res.send('Error saving task!');
+    }else{
+      res.redirect('/');
+    }
+  });
+})
+
 
 app.listen(process.env.PORT, function () {
   console.log('Example app listening on port ' + process.env.PORT);
