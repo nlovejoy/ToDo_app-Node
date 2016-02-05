@@ -15,16 +15,24 @@
             <ul>
             {{#each tasks}}
                 <li>{{this.title}}</li>
+                <form action="/task/delete/{{this.id}}" method="POST">
+                    <input type="submit" name="delete-task" class="delete-task" value="delete">
+                </form>  
+                <form action="/task/complete/{{this.id}}" method="POST">
+                    <input type="submit" name="complete-task" class="toggle-task" value="complete-task">
+                </form> 
+                </li>
             {{/each}}
             </ul>
-        {{else}}
-            No tasks to show!
+            
+            {{else}}
+                No tasks to show!
         {{/if}}
     </div>
     <hr>
     <div>
         <h4>Add a new task</h4>
-        <form action="/tasks/create" method="POST">
+        <form action="/task/create" method="POST">
             <label for="title">Task title</label>
             <input name="title" type="text"><br>
             <label for="description">Task Description</label>
@@ -44,7 +52,7 @@
         <input name="email" type="text"><br>
         <label for="password">Password</label>
         <input name="password" type="text"><br>
-        <input type="submit">
+        <input type="submit" class='log-in-submit'>
     </form>
 </div>
 <div><hr></div>

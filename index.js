@@ -19,6 +19,8 @@ var store = new MongoDBStore({
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
+
 app.use(session({ //   .use is express middleware, read about this
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -28,8 +30,8 @@ app.use(session({ //   .use is express middleware, read about this
 }))
 
 
+
 app.use(function(req, res, next){
-  console.log('req.session =', req.session);
   if(req.session.userId){
     Users.findById(req.session.userId, function(err, user){
       if(!err){
@@ -43,7 +45,6 @@ app.use(function(req, res, next){
 })
 
 function isLoggedIn(req, res, next){
-  console.log('res.locals.currentUser = ', res.locals.currentUser);
   if(res.locals.currentUser){
     next();
   }else{
@@ -61,6 +62,12 @@ function loadUserTasks(req, res, next) {
     .exec(function(err, tasks){
       if(!err){
         res.locals.tasks = tasks;
+        for(var i = 0; i< tasks.length; i++){
+          if(res.locals.currentUser._id.toString() == tasks[i].owner.toString()){
+            
+          }
+        }
+        
       }
       next();
   })
@@ -82,22 +89,26 @@ app.post('/user/register', function (req, res) {
     newUser.email = req.body.email;
     newUser.name = req.body.fl_name;
     newUser.save(function(err, user){
-      if(err){
-        err = 'Error registering you!';
-        res.render('index', {errors: err});
-      }else{
-        req.session.userId = user._id;
-        res.redirect('/');
+       // If there are no errors, redirect to home page
+    if(user && !err){
+      req.session.userId = user._id;
+      res.redirect('/');
+    }
+    var errors = "Error registering you.";
+    if(err){
+      if(err.errmsg && err.errmsg.match(/duplicate/)){
+        errors = 'Account with this email already exists!';
       }
-    })
-    console.log('The user has email adddress ' + req.body.email);
+      return res.render('index', {errors: errors});
+    }
+  });
 });
 
 
 app.post('/user/login', function (req, res) {
   var user = Users.findOne({email: req.body.email}, function(err, user){
     if(err || !user){
-      res.send('Bad login, no such user');
+      res.render('index', {errors: 'Invalid email address'});
       return;
     }
     console.log('user =', user);
@@ -106,7 +117,7 @@ app.post('/user/login', function (req, res) {
     
     user.comparePassword(req.body.password, function(err, isMatch){
       if(err || !isMatch){
-        res.send('bad password meng');
+        res.render('index', {errors: 'Invalid password'});
       }else{
         req.session.userId = user._id;
         res.redirect('/')          
@@ -123,7 +134,7 @@ app.get('/user/logout', function(req, res){
 //  the user to be logged in.
 app.use(isLoggedIn);
 
-app.post('/tasks/create', function(req, res){
+app.post('/task/create', function(req, res){
   var newTask = new Tasks();
   newTask.owner = res.locals.currentUser._id;
   newTask.title = req.body.title;
@@ -136,8 +147,38 @@ app.post('/tasks/create', function(req, res){
       res.redirect('/');
     }
   });
-})
+});
 
+app.post('/task/delete/:id', function(req, res){
+    currentUserID= res.locals.currentUser._Id;
+ 
+ Tasks.findOne(req.params.id, function(err, task){
+   
+   if(currentUserID.toString() == task.owner.toString()){
+     if(err){
+       console.log('no delete');
+     }
+     else
+     {
+       console.log('deleted');
+       task.remove();
+     }
+     res.redirect('/');
+   }
+ });
+});
+
+
+app.post('/task/complete/:id', function(req, res){
+//this is used to mark tasks complete
+Tasks.findById(req.params.id, function(err, task){
+  if(err){
+   }else{
+     task.isComplete = true
+   }
+ res.redirect('/');
+});
+});
 
 app.listen(process.env.PORT, function () {
   console.log('Example app listening on port ' + process.env.PORT);
