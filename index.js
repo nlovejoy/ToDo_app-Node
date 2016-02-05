@@ -150,11 +150,14 @@ app.post('/task/create', function(req, res){
 });
 
 app.post('/task/delete/:id', function(req, res){
-    currentUserID= res.locals.currentUser._Id;
+   //var currentUserID= res.locals.currentUser._Id;
  
  Tasks.findOne(req.params.id, function(err, task){
    
-   if(currentUserID.toString() == task.owner.toString()){
+   console.log(res.locals.currentUser._id);
+   console.log(typeof(res.locals.currentUser._id));
+   
+   if(res.locals.currentUser._id.toString() == task.owner.toString()){
      if(err){
        console.log('no delete');
      }
